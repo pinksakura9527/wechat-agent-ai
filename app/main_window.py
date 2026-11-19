@@ -7,12 +7,13 @@ and renders `AgentEvent` objects on the UI thread.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import time
 from datetime import datetime
 from typing import Any
 
-from PySide6.QtCore import QUrl, Qt, Signal
+from PySide6.QtCore import QUrl, Signal
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -26,7 +27,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from agent.llm_client import LLMError, OpenAICompatClient
+from agent.llm_client import OpenAICompatClient
 from agent.llmadb import LLMadbRunner
 from agent.loop import AgentEvent, AgentLoop, EventKind, LoopLimits
 from agent.permissions import PermissionConfig, PermissionGuard, load_permission_config
@@ -259,10 +260,8 @@ class MainWindow(QMainWindow):
         if self._loop is not None:
             self._loop.stop()
         if self._runner is not None:
-            try:
+            with contextlib.suppress(Exception):  # never block shutdown on IME restore
                 self._runner.restore_unicode()
-            except Exception:  # noqa: BLE001
-                pass
         self._running = False
         self._master_button.setText("▶ 开启 AI 控制")
         self._master_button.setProperty("stopping", "false")
@@ -404,18 +403,14 @@ class MainWindow(QMainWindow):
             database=str(self._store.database),
         )
         self._session_label.setText(
-            "当前会话：{}\n消息 {} · 动作 {}".format(
-                self._session.title,
-                self._store.count_messages(self._session.session_id),
-                self._store.count_actions(self._session.session_id),
-            )
+            f"当前会话：{self._session.title}\n消息 {self._store.count_messages(self._session.session_id)} · 动作 {self._store.count_actions(self._session.session_id)}"
         )
 
     def _restore_log(self, *, announce: bool = False) -> None:
         self._chat_panel.clear()
         if announce:
             self._chat_panel.append_notice(
-                "已恢复会话「{}」。历史消息会作为上下文继续使用。".format(self._session.title)
+                f"已恢复会话「{self._session.title}」。历史消息会作为上下文继续使用。"
             )
         for record in self._store.list_messages(self._session.session_id):
             if record.role == "user":
@@ -518,10 +513,8 @@ class MainWindow(QMainWindow):
         if persona:
             self._persona = persona
             self._persona_panel.set_text(persona)
-            try:
+            with contextlib.suppress(OSError):
                 persona_path().write_text(persona, encoding="utf-8")
-            except OSError:
-                pass
             if self._loop is not None:
                 self._loop.set_persona(persona)
         raw_permissions = summary.get("permissions") or {}

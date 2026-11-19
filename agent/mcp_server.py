@@ -20,12 +20,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from config.settings import AppSettings
 from mcp.server.mcpserver import Image, MCPServer
 
 from agent.llmadb import LLMadbRunner
 from agent.permissions import PermissionDenied, PermissionGuard, load_permission_config
 from agent.tools import TOOL_CATALOG
+from config.settings import AppSettings
 
 SERVER_NAME = "wechat-agent"
 SERVER_VERSION = "0.1.0"

@@ -11,12 +11,13 @@ Timestamps are ISO-8601 UTC strings with a trailing "Z", e.g.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import sqlite3
 import threading
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -26,11 +27,11 @@ DEFAULT_HISTORY_LIMIT = 40
 
 def utc_now() -> str:
     """Current time as a second-precision ISO-8601 UTC string."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def new_session_id() -> str:
-    return "s-{}".format(uuid.uuid4().hex[:16])
+    return f"s-{uuid.uuid4().hex[:16]}"
 
 
 @dataclass(frozen=True)
@@ -56,10 +57,8 @@ class MessageRecord:
         """Convert to the message dict expected by chat-completions APIs."""
         message: dict[str, Any] = {"role": self.role, "content": self.content}
         if self.tool_calls_json:
-            try:
+            with contextlib.suppress(json.JSONDecodeError):
                 message["tool_calls"] = json.loads(self.tool_calls_json)
-            except json.JSONDecodeError:
-                pass
         if self.tool_call_id:
             message["tool_call_id"] = self.tool_call_id
         return message
@@ -220,7 +219,7 @@ class MemoryStore:
             " FROM messages WHERE session_id = ? ORDER BY id DESC"
         )
         if limit is not None:
-            base += " LIMIT {}".format(max(1, int(limit)))
+            base += f" LIMIT {max(1, int(limit))}"
         rows = self.connect().execute(base, (session_id,)).fetchall()
         return [MessageRecord(**dict(row)) for row in reversed(rows)]
 
@@ -272,7 +271,7 @@ class MemoryStore:
             " FROM actions WHERE session_id = ? ORDER BY id DESC"
         )
         if limit is not None:
-            base += " LIMIT {}".format(max(1, int(limit)))
+            base += f" LIMIT {max(1, int(limit))}"
         rows = self.connect().execute(base, (session_id,)).fetchall()
         return [ActionRecord(**dict(row)) for row in reversed(rows)]
 

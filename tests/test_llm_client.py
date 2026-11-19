@@ -6,6 +6,7 @@ import json
 from types import SimpleNamespace
 
 import pytest
+
 from agent.llm_client import LLMError, OpenAICompatClient, ToolCall
 from config.settings import ApiConfig
 

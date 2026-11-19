@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import pytest
+
 from memory.db import MemoryStore
 from memory.transfer import (
     FORMAT_NAME,

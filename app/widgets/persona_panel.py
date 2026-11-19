@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from config.settings import bundled_file, persona_path
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -16,6 +15,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from config.settings import bundled_file, persona_path
 
 
 class PersonaPanel(QWidget):

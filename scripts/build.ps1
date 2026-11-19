@@ -22,7 +22,12 @@ Set-Location $repoRoot
 
 $venvPython = Join-Path $repoRoot '.venv\Scripts\python.exe'
 if (-not (Test-Path $venvPython)) {
-    throw 'Run scripts/dev.ps1 first: .venv is missing.'
+    # CI installs the project into the runner's Python instead of a local venv.
+    $systemPython = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $systemPython) {
+        throw 'Python not found. Run scripts/dev.ps1 first or install Python 3.11+.'
+    }
+    $venvPython = $systemPython.Source
 }
 
 if (-not $SkipInstall) {

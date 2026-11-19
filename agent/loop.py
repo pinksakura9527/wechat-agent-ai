@@ -345,9 +345,7 @@ class AgentLoop:
                             AgentEvent(
                                 EventKind.ERROR,
                                 {
-                                    "message": "同一工具以相同参数连续失败 {} 次（{}），已停止本轮任务。".format(
-                                        self._failures[failure_key], call.name
-                                    )
+                                    "message": f"同一工具以相同参数连续失败 {self._failures[failure_key]} 次（{call.name}），已停止本轮任务。"
                                 },
                             ),
                             events,

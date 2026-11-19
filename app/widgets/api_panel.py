@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from config.settings import ApiConfig
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QDoubleSpinBox,
@@ -16,6 +15,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from config.settings import ApiConfig
 
 
 class ApiPanel(QWidget):

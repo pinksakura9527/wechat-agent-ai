@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import pytest
+
 from agent.tools import TOOL_CATALOG, get_spec, spec_names
 from config.settings import AppSettings, bundled_file
 

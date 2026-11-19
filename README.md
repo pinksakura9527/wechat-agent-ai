@@ -155,7 +155,7 @@ flowchart TB
 ### 1. 安装
 
 ```powershell
-git clone https://github.com/<you>/wechat-agent-ai.git
+git clone https://github.com/pinksakura9527/wechat-agent-ai.git
 cd wechat-agent-ai
 
 python -m venv .venv

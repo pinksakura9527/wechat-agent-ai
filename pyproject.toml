@@ -41,9 +41,9 @@ dev = [
 wechat-agent = "app.main:main"
 
 [project.urls]
-Homepage = "https://github.com/your-org/wechat-agent-ai"
-Issues = "https://github.com/your-org/wechat-agent-ai/issues"
-"Architecture" = "https://github.com/your-org/wechat-agent-ai/blob/main/docs/architecture.md"
+Homepage = "https://github.com/pinksakura9527/wechat-agent-ai"
+Issues = "https://github.com/pinksakura9527/wechat-agent-ai/issues"
+"Architecture" = "https://github.com/pinksakura9527/wechat-agent-ai/blob/main/docs/architecture.md"
 
 [tool.setuptools]
 packages = ["app", "agent", "memory", "config"]
@@ -54,7 +54,7 @@ config = ["*.md", "*.json"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["app", "agent", "memory", "config", "scripts", "tests"]
+src = ["."]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]

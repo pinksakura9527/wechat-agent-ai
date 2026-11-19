@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QMessageBox, QTabWidget
+
 from agent.llmadb import ToolResult
 from agent.permissions import PermissionConfig
 from app.widgets.api_panel import ApiPanel
 from app.widgets.permissions_panel import PermissionsPanel
 from config.settings import ApiConfig, AppSettings
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QMessageBox, QTabWidget
 
 
 def _item_for(panel: PermissionsPanel, name: str):

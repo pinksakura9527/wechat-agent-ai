@@ -38,3 +38,5 @@ desktop.ini
 platform-tools/
 .adb/
 .cache/
+.ci-venv/
+.ci-clone/
