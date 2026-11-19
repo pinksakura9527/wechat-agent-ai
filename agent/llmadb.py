@@ -42,6 +42,19 @@ _SCREEN_RE = re.compile(r"path=(?P<path>.+?)\s+size=(?P<size>\S+)")
 RETRYABLE_TOOLS = {"get_ui", "screenshot", "device_status", "current_app", "wait_for"}
 RETRY_DELAY_SECONDS = 0.6
 
+# Emulators often expose adb on one of these loopback ports. BlueStacks: 5555,
+# MuMu: 7555, Nox: 62001, LDPlayer: 5555/5557.
+EMULATOR_ADB_PORTS = (5555, 5557, 5556, 7555, 62001, 62025, 16384)
+
+
+def _parse_device_serial(text: str) -> str | None:
+    """Pick the first "serial\tdevice" line from adb devices output."""
+    for line in (text or "").splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 2 and parts[1].strip() == "device":
+            return parts[0].strip()
+    return None
+
 
 # --------------------------------------------------------------------------- #
 # Executable discovery
@@ -585,6 +598,25 @@ class LLMadbRunner:
         """Restore the IME that was active before AI control started."""
         if self._unicode is not None:
             self._unicode.restore_ime()
+
+    def ensure_device_connected(self) -> tuple[str | None, list[str]]:
+        """Return a connected device serial, trying common emulator adb ports.
+
+        `adb devices` is empty until `adb connect 127.0.0.1:<port>` is run once,
+        which confuses users whose emulator is clearly running. This helper does
+        that automatically and reports which ports were attempted.
+        """
+        attempts: list[str] = []
+        serial = _parse_device_serial(self.run(["--", "devices"], timeout=10).stdout)
+        if serial:
+            return serial, attempts
+        for port in EMULATOR_ADB_PORTS:
+            target = f"127.0.0.1:{port}"
+            attempts.append(target)
+            with contextlib.suppress(Exception):
+                self.run(["--", "connect", target], timeout=8)
+        serial = _parse_device_serial(self.run(["--", "devices"], timeout=10).stdout)
+        return serial, attempts
 
     def _type_unicode(self, probe: dict[str, Any]) -> ToolResult:
         """Route non-ASCII text through the ADBKeyboard IME."""

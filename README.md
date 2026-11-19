@@ -244,6 +244,27 @@ python -m app.main
 
 ---
 
+## AI 服务商（不限于 GPT）
+
+本项目使用 **OpenAI 兼容协议**，任何提供 `/chat/completions` 的服务都能接入。
+“API 配置”页有服务商预设下拉，选中即自动填好 Base URL 与模型名，Key 需要自己填：
+
+| 服务商 | Base URL | 建议模型 | 图片输入 |
+| --- | --- | --- | --- |
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` | ✅ |
+| DeepSeek 深度求索 | `https://api.deepseek.com/v1` | `deepseek-chat` | ❌ 纯文本 |
+| 通义千问（阿里云百炼） | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-vl-max` | ✅ |
+| 豆包（火山方舟） | `https://ark.cn-beijing.volces.com/api/v3` | 视觉模型或 `ep-...` 接入点 ID | ✅ |
+| 智谱 GLM | `https://open.bigmodel.cn/api/paas/v4` | `glm-4v-plus` | ✅ |
+| Kimi（月之暗面） | `https://api.moonshot.cn/v1` | `moonshot-v1-8k` | ❌ 纯文本 |
+| Ollama 本地 | `http://127.0.0.1:11434/v1` | `qwen2.5vl:7b` | ✅ |
+
+> **重要**：微信界面无法读取 UI 树，Agent 依赖截图。请选择表中“图片输入 ✅”的模型，
+> 否则模型看不到微信界面。DeepSeek / Kimi 当前文本模型只适合验证 API 连通性。
+> 各厂商地址与模型名可能变化，以官方文档为准；Base URL 和模型名都可以手动修改。
+
+---
+
 ## 权限模型（默认最小化）
 
 | 工具 | 类别 | 默认 | 说明 |
@@ -418,8 +439,9 @@ powershell -ExecutionPolicy Bypass -File scripts/build.ps1
 在「API 配置」填写 Base URL / Key / 模型名并保存；Key 只存本机 `settings.json`。
 
 **Q：设备显示未连接？**
-确认模拟器已启动、开启 ADB 调试，执行 `adb connect 127.0.0.1:5555`（端口随模拟器而变），
-再点“重新检测模拟器”。必要时在 `settings.json` 设置 `runtime.device_serial`。
+新版会在“重新检测模拟器”时自动尝试 `5555 / 5557 / 5556 / 7555 / 62001 / 62025 / 16384` 等常见端口。
+如果仍失败，手动执行一次 `adb connect 127.0.0.1:5555`（BlueStacks），端口随模拟器而变：
+MuMu 7555、Nox 62001、LDPlayer 5555/5557。也可以在 `settings.json` 设置 `runtime.device_serial`。
 
 **Q：`llmadb: not found`？**
 `pip install llm-adb`，或把路径写入 `runtime.llmadb_path`。运行 `python scripts/check_env.py` 体检。

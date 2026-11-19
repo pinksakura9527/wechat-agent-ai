@@ -36,12 +36,18 @@ class DeviceCheckWorker(QThread):
 
     def run(self) -> None:
         try:
+            ensure = getattr(self._runner, "ensure_device_connected", None)
+            serial, attempts = ensure() if callable(ensure) else (None, [])
             result = self._runner.call("device_status", {})
         except Exception as exc:  # noqa: BLE001
             self.checked.emit(False, str(exc))
             return
         if result.ok:
             summary = " ".join(result.text.split())
-            self.checked.emit(True, summary[:120])
+            prefix = f"设备 {serial} · " if serial else ""
+            self.checked.emit(True, prefix + summary[:120])
         else:
-            self.checked.emit(False, result.text or "device check failed")
+            detail = result.text or "device check failed"
+            if attempts:
+                detail += "（已尝试端口：{}）".format(", ".join(attempts))
+            self.checked.emit(False, detail)

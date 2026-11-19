@@ -176,6 +176,56 @@ def test_unicode_disabled_returns_structured_error(monkeypatch):
     assert result.error_code == "E_UNICODE_DISABLED"
 
 
+def test_ensure_device_connected_tries_common_ports():
+    runner = LLMadbRunner(llmadb="llmadb.exe", adb="adb.exe")
+    connects: list[str] = []
+    state = {"devices_calls": 0}
+
+    def fake_run(argv, timeout=None):
+        argv = list(argv)
+        if argv[-1] == "devices":
+            state["devices_calls"] += 1
+            if connects:
+                return LLMadbResult(
+                    ok=True,
+                    argv=argv,
+                    stdout="List of devices attached\n127.0.0.1:5555\tdevice\n",
+                )
+            return LLMadbResult(ok=True, argv=argv, stdout="List of devices attached\n\n")
+        if "connect" in argv:
+            target = argv[-1]
+            connects.append(target)
+            ok = target.endswith(":5555")
+            return LLMadbResult(ok=ok, argv=argv, stdout="connected" if ok else "cannot connect")
+        return LLMadbResult(ok=True, argv=argv)
+
+    runner.run = fake_run  # type: ignore[method-assign]
+    serial, attempts = runner.ensure_device_connected()
+
+    assert serial == "127.0.0.1:5555"
+    assert "127.0.0.1:5555" in attempts
+    assert len(connects) >= 1
+
+
+def test_ensure_device_connected_skips_connect_when_present():
+    runner = LLMadbRunner(llmadb="llmadb.exe", adb="adb.exe")
+    calls: list[list[str]] = []
+
+    def fake_run(argv, timeout=None):
+        argv = list(argv)
+        calls.append(argv)
+        return LLMadbResult(
+            ok=True, argv=argv, stdout="List of devices attached\n127.0.0.1:5555\tdevice\n"
+        )
+
+    runner.run = fake_run  # type: ignore[method-assign]
+    serial, attempts = runner.ensure_device_connected()
+
+    assert serial == "127.0.0.1:5555"
+    assert attempts == []
+    assert not any("connect" in argv for argv in calls)
+
+
 def test_runner_without_executable_reports_missing():
     runner = LLMadbRunner(llmadb="llmadb.exe", adb="adb.exe")
     runner.executable = None  # simulate llm-adb not installed

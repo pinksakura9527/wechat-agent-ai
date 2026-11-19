@@ -72,6 +72,33 @@ def test_permissions_panel_dangerous_tool_requires_confirmation(qtbot, monkeypat
     assert changes == []  # no change was accepted
 
 
+def test_api_panel_provider_preset_fills_fields(qtbot):
+    from config.providers import PROVIDER_PRESETS
+
+    panel = ApiPanel(ApiConfig(api_key="", model="m"))
+    qtbot.addWidget(panel)
+    index = next(i for i, preset in enumerate(PROVIDER_PRESETS) if "通义" in preset.name)
+
+    panel._provider.setCurrentIndex(index)
+
+    assert "dashscope" in panel._base_url.text()
+    assert panel._model.text().startswith("qwen-vl")
+    assert "支持图片" in panel._provider_hint.text()
+
+
+def test_api_panel_preset_without_vision_warns(qtbot):
+    from config.providers import PROVIDER_PRESETS
+
+    panel = ApiPanel(ApiConfig(api_key="", model="m"))
+    qtbot.addWidget(panel)
+    index = next(i for i, preset in enumerate(PROVIDER_PRESETS) if "DeepSeek" in preset.name)
+
+    panel._provider.setCurrentIndex(index)
+
+    assert "deepseek" in panel._base_url.text()
+    assert panel._provider_hint.text().startswith("⚠")
+
+
 def test_permissions_panel_emits_runtime_toggles(qtbot):
     from config.settings import RuntimeConfig
 

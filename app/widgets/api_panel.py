@@ -1,9 +1,10 @@
-"""API configuration panel (Base URL / Key / model / sampling)."""
+"""API configuration panel (provider preset / Base URL / Key / model)."""
 
 from __future__ import annotations
 
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
+    QComboBox,
     QDoubleSpinBox,
     QFormLayout,
     QGroupBox,
@@ -16,6 +17,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from config.providers import PROVIDER_PRESETS, match_preset
 from config.settings import ApiConfig
 
 
@@ -30,6 +32,12 @@ class ApiPanel(QWidget):
 
         group = QGroupBox("OpenAI 兼容接口配置", self)
         form = QFormLayout(group)
+
+        self._provider = QComboBox(self)
+        self._provider.addItems([preset.name for preset in PROVIDER_PRESETS])
+        self._provider.setCurrentIndex(match_preset(config.base_url, config.model))
+        self._provider.currentIndexChanged.connect(self._apply_provider)
+        form.addRow("服务商预设", self._provider)
 
         self._base_url = QLineEdit(config.base_url, self)
         self._base_url.setPlaceholderText("https://api.openai.com/v1")
@@ -47,7 +55,7 @@ class ApiPanel(QWidget):
         form.addRow("API Key", key_row)
 
         self._model = QLineEdit(config.model, self)
-        self._model.setPlaceholderText("gpt-4o-mini / deepseek-chat / qwen2.5 ...")
+        self._model.setPlaceholderText("gpt-4o-mini / deepseek-chat / qwen-vl-max ...")
         form.addRow("模型名", self._model)
 
         self._max_tokens = QSpinBox(self)
@@ -70,6 +78,11 @@ class ApiPanel(QWidget):
 
         layout.addWidget(group)
 
+        self._provider_hint = QLabel(self)
+        self._provider_hint.setWordWrap(True)
+        layout.addWidget(self._provider_hint)
+        self._update_hint(PROVIDER_PRESETS[self._provider.currentIndex()])
+
         actions = QHBoxLayout()
         self._save = QPushButton("保存配置", self)
         self._save.setObjectName("primaryButton")
@@ -79,8 +92,9 @@ class ApiPanel(QWidget):
         layout.addLayout(actions)
 
         note = QLabel(
-            "配置保存在用户目录（%APPDATA%\\WeChatAgentAI\\settings.json），不会写入仓库。"
-            "API Key 仅在本机使用，但请求内容会发送给你配置的服务商。",
+            "任何 OpenAI 兼容接口都可以用：DeepSeek、通义千问、豆包、智谱、Kimi、Ollama 等，"
+            "只要填对 Base URL 和模型名。微信操作依赖截图，请选择支持图片输入的模型。"
+            "配置保存在用户目录（%APPDATA%\\WeChatAgentAI\\settings.json），不会写入仓库。",
             self,
         )
         note.setWordWrap(True)
@@ -88,8 +102,27 @@ class ApiPanel(QWidget):
         layout.addWidget(note)
         layout.addStretch(1)
 
+    # ------------------------------------------------------------------ slots
+    def _apply_provider(self, index: int) -> None:
+        preset = PROVIDER_PRESETS[index]
+        if preset.base_url:
+            self._base_url.setText(preset.base_url)
+        if preset.model:
+            self._model.setText(preset.model)
+        self._update_hint(preset)
+
+    def _update_hint(self, preset) -> None:
+        if preset.vision:
+            self._provider_hint.setText("✅ " + preset.note)
+            self._provider_hint.setStyleSheet("color: #027a48;")
+        else:
+            self._provider_hint.setText("⚠ " + preset.note)
+            self._provider_hint.setStyleSheet("color: #b42318;")
+
     def _toggle_key_visible(self, visible: bool) -> None:
-        self._api_key.setEchoMode(QLineEdit.EchoMode.Normal if visible else QLineEdit.EchoMode.Password)
+        self._api_key.setEchoMode(
+            QLineEdit.EchoMode.Normal if visible else QLineEdit.EchoMode.Password
+        )
         self._show_key.setText("隐藏" if visible else "显示")
 
     def _save_clicked(self) -> None:
@@ -110,3 +143,4 @@ class ApiPanel(QWidget):
         self._max_tokens.setValue(config.max_tokens)
         self._temperature.setValue(config.temperature)
         self._timeout.setValue(config.timeout_seconds)
+        self._provider.setCurrentIndex(match_preset(config.base_url, config.model))
