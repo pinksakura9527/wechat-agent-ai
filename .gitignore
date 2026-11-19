@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# PyInstaller output
+release/
+*.spec
+!packaging/*.spec
+
+# Local runtime data (never commit secrets or chat history)
+*.db
+*.db-journal
+*.db-wal
+config.local.json
+persona.local.md
+exports/
+logs/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local tooling
+platform-tools/
+.adb/
+.cache/

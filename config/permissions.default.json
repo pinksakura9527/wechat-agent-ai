@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "allowed_tools": [
+    "device_status",
+    "get_ui",
+    "current_app",
+    "screenshot",
+    "tap",
+    "type_text",
+    "swipe",
+    "key",
+    "wait_for",
+    "launch_app"
+  ],
+  "denied_tools": [
+    "shell",
+    "install",
+    "uninstall",
+    "pull",
+    "push",
+    "clear_data",
+    "force_stop"
+  ],
+  "notes": "Dangerous tools are denied by default (dangerous tools are derived from agent/tools.py). Enabling one requires an explicit user action in the UI, which shows a warning. 'shell' passes arbitrary commands through llmadb to adb and can exfiltrate data."
+}
