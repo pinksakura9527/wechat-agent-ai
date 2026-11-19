@@ -49,7 +49,8 @@ PROVIDER_PRESETS: tuple[ProviderPreset, ...] = (
         "https://ark.cn-beijing.volces.com/api/v3",
         "doubao-1.5-vision-pro-32k-250115",
         True,
-        "视觉模型。模型名也可填方舟「推理接入点 ID」（ep-...），以控制台为准。",
+        "视觉模型。模型名必须填方舟「推理接入点 ID」（ep-...）；"
+        "展示名（如 Doubao-Seed-2.1-turbo）不能用于 API，会报 404。",
     ),
     ProviderPreset(
         "智谱 GLM",

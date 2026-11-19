@@ -88,6 +88,21 @@ def test_no_tools_omits_tool_choice():
     assert "tools" not in fake.chat.completions.requests[0]
 
 
+def test_404_error_explains_endpoint_id():
+    class NotFound(Exception):
+        status_code = 404
+
+    client = SimpleNamespace(
+        chat=SimpleNamespace(
+            completions=SimpleNamespace(create=lambda **kwargs: (_ for _ in ()).throw(NotFound("model x")))
+        )
+    )
+    api = OpenAICompatClient(ApiConfig(api_key="k"), client=client)
+    with pytest.raises(LLMError) as info:
+        api.complete([{"role": "user", "content": "x"}], [])
+    assert "ep-" in str(info.value)
+
+
 def test_missing_api_key_raises():
     client = OpenAICompatClient(ApiConfig(api_key=""), client=None)
     with pytest.raises(LLMError, match="API key"):

@@ -443,6 +443,10 @@ powershell -ExecutionPolicy Bypass -File scripts/build.ps1
 如果仍失败，手动执行一次 `adb connect 127.0.0.1:5555`（BlueStacks），端口随模拟器而变：
 MuMu 7555、Nox 62001、LDPlayer 5555/5557。也可以在 `settings.json` 设置 `runtime.device_serial`。
 
+**Q：报 404 `The model or endpoint ... does not exist`？**
+模型名不对。豆包/火山方舟必须填控制台「推理接入点 ID」（`ep-...`），不能用展示名（如 `Doubao-Seed-2.1-turbo`）；
+其他厂商请核对官方模型 ID。填好后点「API 配置」页的**测试连接**按钮先验证一次。
+
 **Q：`llmadb: not found`？**
 `pip install llm-adb`，或把路径写入 `runtime.llmadb_path`。运行 `python scripts/check_env.py` 体检。
 

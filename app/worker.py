@@ -25,6 +25,28 @@ class InstructionWorker(QThread):
         self.completed.emit()
 
 
+class ConnectionTestWorker(QThread):
+    """Sends one tiny request to verify Base URL / Key / model."""
+
+    result = Signal(bool, str)
+
+    def __init__(self, config) -> None:
+        super().__init__()
+        self._config = config
+
+    def run(self) -> None:
+        from agent.llm_client import OpenAICompatClient
+
+        try:
+            client = OpenAICompatClient(self._config)
+            response = client.complete([{"role": "user", "content": "ping"}], [])
+        except Exception as exc:  # noqa: BLE001 - show the provider error verbatim
+            self.result.emit(False, str(exc))
+            return
+        preview = " ".join((response.text or "(空回复)").split())[:60]
+        self.result.emit(True, "连接成功：" + preview)
+
+
 class DeviceCheckWorker(QThread):
     """Probes the emulator without blocking the window."""
 

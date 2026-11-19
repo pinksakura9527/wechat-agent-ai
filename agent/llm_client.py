@@ -61,6 +61,25 @@ class LLMClient(Protocol):
     def complete(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> LLMResponse: ...
 
 
+def _describe_error(exc: Exception) -> str:
+    """Turn provider errors into actionable Chinese messages."""
+    status = getattr(exc, "status_code", None)
+    text = str(exc)
+    if status == 404:
+        return (
+            "模型或接入点不存在（404）。豆包/火山方舟请在控制台创建「推理接入点」，"
+            "把模型名填成 ep-... 形式的接入点 ID（展示名如 Doubao-Seed-2.1-turbo 不能直接用于 API）；"
+            "其他厂商请核对模型 ID。原始错误：" + text
+        )
+    if status == 401:
+        return "API Key 无效或已过期（401），请检查 Key 与 Base URL 是否属于同一厂商。原始错误：" + text
+    if status == 429:
+        return "请求过于频繁或额度不足（429），请稍后重试或检查账户余额。原始错误：" + text
+    if status is None and ("Connection" in text or "connect" in text.lower()):
+        return "无法连接到大模型服务，请检查 Base URL、网络/代理。原始错误：" + text
+    return "LLM 请求失败：" + text
+
+
 class OpenAICompatClient:
     """OpenAI-compatible client; also works with DeepSeek, Ollama, vLLM, etc."""
 
@@ -108,7 +127,7 @@ class OpenAICompatClient:
         try:
             response = client.chat.completions.create(**request)
         except Exception as exc:  # noqa: BLE001 - provider SDK error types vary
-            raise LLMError(f"LLM request failed: {exc}") from exc
+            raise LLMError(_describe_error(exc)) from exc
 
         choices = getattr(response, "choices", None) or []
         if not choices:
